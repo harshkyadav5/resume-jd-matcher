@@ -1,0 +1,12 @@
+# Cache
+__pycache__/
+
+# Uploads & vector DB
+uploads/
+chroma_db/
+
+# Secrets
+.env
+
+# Test outputs
+*.log
