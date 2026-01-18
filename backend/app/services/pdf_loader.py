@@ -1,11 +1,21 @@
-from pypdf import PdfReader
+import pdfplumber
+from pathlib import Path
 
-def extract_text_per_page(file_obj) -> list[str]:
-    reader = PdfReader(file_obj)
-    pages = []
+def extract_text_per_page(pdf_path: Path) -> list[str]:
+    pages_text = []
 
-    for page in reader.pages:
-        text = page.extract_text() or ""
-        pages.append(text)
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text(
+                x_tolerance=2,
+                y_tolerance=2,
+                keep_blank_chars=False,
+                use_text_flow=True
+            )
 
-    return pages
+            if text:
+                text = " ".join(text.split())
+
+            pages_text.append(text or "")
+
+    return pages_text
