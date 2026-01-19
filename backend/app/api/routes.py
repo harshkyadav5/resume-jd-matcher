@@ -107,9 +107,11 @@ async def generate_match_feedback(payload: dict):
     missing_skills = payload["missing_skills"]
 
     prompt = build_feedback_prompt(
-        match_percentage,
-        matched_skills,
-        missing_skills
+        job_title=payload["job_title"],
+        match_percentage=payload["match_percentage"],
+        matched_skills=payload["matched_skills"],
+        missing_skills=payload["missing_skills"],
+        top_snippets=payload["top_snippets"]
     )
 
     feedback = generate_feedback(prompt)
