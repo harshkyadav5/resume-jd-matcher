@@ -135,3 +135,62 @@ async def generate_match_feedback(payload: dict):
         "message": "Feedback generated successfully",
         "feedback": feedback
     }
+
+
+@router.post("/analyze")
+async def analyze_resume(
+    resume: UploadFile = File(...),
+    job_description: str = Form(...)
+):
+    if not resume.filename.lower().endswith((".pdf", ".docx", ".txt")):
+        raise HTTPException(400, "Invalid resume file type")
+
+    if not job_description.strip():
+        raise HTTPException(400, "Job description cannot be empty")
+
+    resume_id = str(uuid4())
+    temp_path = UPLOAD_DIR / f"{resume_id}_{resume.filename}"
+
+    with temp_path.open("wb") as buffer:
+        shutil.copyfileobj(resume.file, buffer)
+
+    pages = extract_text_per_page(temp_path)
+    resume_chunks = chunk_pages(pages)
+
+    if not resume_chunks:
+        raise HTTPException(400, "No readable content in resume")
+
+    resume_text = " ".join(c["text"] for c in resume_chunks)
+
+    jd_chunks = chunk_text(job_description)
+
+    if not jd_chunks:
+        raise HTTPException(400, "JD could not be processed")
+
+    match_result = match_resume_with_jd(
+        resume_chunks=resume_chunks,
+        jd_chunks=jd_chunks
+    )
+
+    skill_result = compare_skills(
+        jd_text=job_description,
+        resume_text=resume_text
+    )
+
+    prompt = build_feedback_prompt(
+        job_title="Software Engineer",
+        match_percentage=match_result["final_score"],
+        matched_skills=skill_result["matched_skills"],
+        missing_skills=skill_result["missing_skills"],
+        top_snippets=[m["chunk"]["text"] for m in match_result["top_matches"]]
+    )
+
+    feedback = generate_feedback(prompt)
+
+    return {
+        "match_percentage": match_result["final_score"],
+        "score_breakdown": match_result["breakdown"],
+        "top_matches": match_result["top_matches"],
+        **skill_result,
+        "feedback": feedback
+    }

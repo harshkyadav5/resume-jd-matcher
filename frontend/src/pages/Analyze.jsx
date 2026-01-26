@@ -1,7 +1,8 @@
 import { useState } from "react"
-import UploadCard from "../components/UploadCard"
 import LoadingCard from "../components/LoadingCard"
+import SkillBreakdown from "../components/SkillBreakdown"
 import { analyzeResume } from "../services/api"
+import AnalyzeForm from "../components/AnalyzeForm"
 
 export default function Analyze() {
   const [resume, setResume] = useState(null)
@@ -19,11 +20,10 @@ export default function Analyze() {
     try {
       setLoading(true)
       setError(null)
-
       const data = await analyzeResume(resume, jd)
       setResult(data)
     } catch (err) {
-      setError(err.message)
+      setError(err.message || "Something went wrong")
     } finally {
       setLoading(false)
     }
@@ -33,13 +33,17 @@ export default function Analyze() {
     <div className="min-h-screen bg-gray-950 text-white px-6 py-24">
       <div className="max-w-4xl mx-auto space-y-8">
 
-        <UploadCard
-          resume={resume}
-          setResume={setResume}
-          jd={jd}
-          setJd={setJd}
-          onAnalyze={handleAnalyze}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <AnalyzeForm
+            resume={resume}
+            setResume={setResume}
+            jd={jd}
+            setJd={setJd}
+            onAnalyze={handleAnalyze}
+            loading={loading}
+          />
+        </div>
 
         {loading && <LoadingCard />}
 
@@ -50,15 +54,22 @@ export default function Analyze() {
         )}
 
         {result && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-8">
+
             <div className="text-3xl font-bold">
               Match Score: {result.match_percentage}%
             </div>
 
+            <SkillBreakdown
+              matched={result.matched_skills || []}
+              missing={result.missing_skills || []}
+              extra={result.extra_skills || []}
+            />
+
             <div>
               <h3 className="font-semibold mb-2">Top Matches</h3>
               <ul className="space-y-3">
-                {result.top_matches.map((m, i) => (
+                {result.top_matches?.map((m, i) => (
                   <li
                     key={i}
                     className="bg-black/30 p-4 rounded-lg text-sm"
@@ -66,7 +77,7 @@ export default function Analyze() {
                     <div className="opacity-80 mb-1">
                       Score: {m.score}%
                     </div>
-                    <div>{m.chunk}</div>
+                    <div>{m.chunk?.text}</div>
                   </li>
                 ))}
               </ul>
@@ -78,6 +89,7 @@ export default function Analyze() {
                 {result.feedback}
               </p>
             </div>
+
           </div>
         )}
       </div>
