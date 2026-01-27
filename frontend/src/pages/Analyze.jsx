@@ -30,34 +30,48 @@ export default function Analyze() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white px-6 py-24">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0b0f14] text-white px-6 pt-50 pb-24">
+      <div className="max-w-5xl mx-auto space-y-12">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <AnalyzeForm
-            resume={resume}
-            setResume={setResume}
-            jd={jd}
-            setJd={setJd}
-            onAnalyze={handleAnalyze}
-            loading={loading}
-          />
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl md:text-4xl font-bold">
+            Resume–JD Analysis
+          </h1>
+          <p className="text-gray-400 text-sm">
+            Upload your resume and paste the job description to analyze match quality.
+          </p>
         </div>
 
-        {loading && <LoadingCard />}
+        <AnalyzeForm
+          resume={resume}
+          setResume={setResume}
+          jd={jd}
+          setJd={setJd}
+          onAnalyze={handleAnalyze}
+          loading={loading}
+        />
+
+        {loading && (
+          <div className="flex justify-center">
+            <LoadingCard />
+          </div>
+        )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-center">
             {error}
           </div>
         )}
 
         {result && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-8">
+          <div className="space-y-10 animate-fade-in">
 
-            <div className="text-3xl font-bold">
-              Match Score: {result.match_percentage}%
+            {/* Score */}
+            <div className="text-center">
+              <p className="text-gray-400 text-sm">Match Score</p>
+              <h2 className="text-5xl font-bold text-white mt-2">
+                {result.match_percentage}%
+              </h2>
             </div>
 
             <SkillBreakdown
@@ -66,26 +80,33 @@ export default function Analyze() {
               extra={result.extra_skills || []}
             />
 
-            <div>
-              <h3 className="font-semibold mb-2">Top Matches</h3>
-              <ul className="space-y-3">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-semibold mb-4 text-lg">
+                Top Matching Resume Sections
+              </h3>
+
+              <ul className="space-y-4">
                 {result.top_matches?.map((m, i) => (
                   <li
                     key={i}
-                    className="bg-black/30 p-4 rounded-lg text-sm"
+                    className="bg-black/40 p-4 rounded-xl text-sm border border-white/5 hover:border-white/15 transition"
                   >
-                    <div className="opacity-80 mb-1">
+                    <div className="text-gray-400 text-xs mb-2">
                       Score: {m.score}%
                     </div>
-                    <div>{m.chunk?.text}</div>
+                    <div className="text-gray-200 leading-relaxed">
+                      {m.chunk?.text}
+                    </div>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div>
-              <h3 className="font-semibold mb-2">AI Feedback</h3>
-              <p className="text-gray-300 whitespace-pre-line">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <h3 className="font-semibold mb-3 text-lg">
+                AI Feedback
+              </h3>
+              <p className="text-gray-300 leading-relaxed whitespace-pre-line">
                 {result.feedback}
               </p>
             </div>
